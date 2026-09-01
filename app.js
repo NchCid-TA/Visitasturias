@@ -43,11 +43,20 @@
       .replace(/(^-|-$)/g, "");
   }
 
-  function makeIcon(cat) {
-    const info = catById[cat];
+  function isHighlighted(poi) {
+    return !!(
+      (advancedFilters.michelin && poi.michelin) ||
+      (advancedFilters.emblematico && poi.emblematico) ||
+      (advancedFilters.destacada && poi.destacada)
+    );
+  }
+
+  function makeIcon(poi) {
+    const info = catById[poi.cat];
+    const cls = "custom-marker" + (isHighlighted(poi) ? " marker-highlight" : "");
     return L.divIcon({
       className: "",
-      html: `<div class="custom-marker" style="background:${info.color}"><span>${info.icon}</span></div>`,
+      html: `<div class="${cls}" style="background:${info.color}"><span>${info.icon}</span></div>`,
       iconSize: [30, 30],
       iconAnchor: [15, 30],
     });
@@ -80,11 +89,18 @@
     usedIds.add(id);
     poi.id = id;
 
-    const marker = L.marker([poi.lat, poi.lng], { icon: makeIcon(poi.cat) });
+    const marker = L.marker([poi.lat, poi.lng], { icon: makeIcon(poi) });
     marker.poi = poi;
     marker.on("click", () => openDetail(poi));
     return marker;
   });
+
+  const highlightableMarkers = allMarkers.filter(
+    (m) => m.poi.michelin || m.poi.emblematico || m.poi.destacada
+  );
+  function applyHighlights() {
+    highlightableMarkers.forEach((marker) => marker.setIcon(makeIcon(marker.poi)));
+  }
 
   // ---------- Panel de detalle (derecha) ----------
   const detailPanel = document.getElementById("detailPanel");
@@ -164,28 +180,21 @@
 
     Object.values(clusterGroups).forEach((g) => g.clearLayers());
 
-    const categoriesToShow = new Set();
     let visibleCount = 0;
     allMarkers.forEach((marker) => {
       const poi = marker.poi;
-      const categoryOk = activeCats.has(poi.cat);
-      const advancedOk =
-        (advancedFilters.michelin && poi.michelin) ||
-        (advancedFilters.emblematico && poi.emblematico) ||
-        (advancedFilters.destacada && poi.destacada);
-      if (!categoryOk && !advancedOk) return;
+      if (!activeCats.has(poi.cat)) return;
       if (favoritesOnly && !favorites.has(poi.id)) return;
       if (query) {
         const haystack = (poi.name + " " + poi.town).toLowerCase();
         if (!haystack.includes(query)) return;
       }
       clusterGroups[poi.cat].addLayer(marker);
-      categoriesToShow.add(poi.cat);
       visibleCount++;
     });
 
     Object.entries(clusterGroups).forEach(([id, group]) => {
-      if (categoriesToShow.has(id)) {
+      if (activeCats.has(id)) {
         if (!map.hasLayer(group)) map.addLayer(group);
       } else if (map.hasLayer(group)) {
         map.removeLayer(group);
@@ -264,7 +273,7 @@
     item.addEventListener("click", () => {
       advancedFilters[f.key] = !advancedFilters[f.key];
       item.classList.toggle("active", advancedFilters[f.key]);
-      refreshMap();
+      applyHighlights();
     });
     advancedListEl.appendChild(item);
   });
