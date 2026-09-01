@@ -24,6 +24,10 @@
   // ---------- Filtros avanzados (Michelin, emblematicos, rutas destacadas) ----------
   const advancedFilters = { michelin: false, emblematico: false, destacada: false };
 
+  // ---------- Destacados del mes (locales que pagan cuota, ver destacados.js) ----------
+  const destacadosSet = new Set(typeof DESTACADOS_MES !== "undefined" ? DESTACADOS_MES : []);
+  let destacadosOnly = false;
+
   // ---------- Favoritos (guardados en este navegador, sin cuenta) ----------
   const FAV_KEY = "asturias_favoritos";
   const favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || "[]"));
@@ -47,7 +51,8 @@
     return !!(
       (advancedFilters.michelin && poi.michelin) ||
       (advancedFilters.emblematico && poi.emblematico) ||
-      (advancedFilters.destacada && poi.destacada)
+      (advancedFilters.destacada && poi.destacada) ||
+      (destacadosOnly && destacadosSet.has(poi.id))
     );
   }
 
@@ -96,7 +101,7 @@
   });
 
   const highlightableMarkers = allMarkers.filter(
-    (m) => m.poi.michelin || m.poi.emblematico || m.poi.destacada
+    (m) => m.poi.michelin || m.poi.emblematico || m.poi.destacada || destacadosSet.has(m.poi.id)
   );
   function applyHighlights() {
     highlightableMarkers.forEach((marker) => marker.setIcon(makeIcon(marker.poi)));
@@ -137,6 +142,9 @@
     }
     if (poi.destacada) {
       badges.push(`<span class="detail-badge destacada">🥾 Ruta destacada</span>`);
+    }
+    if (destacadosSet.has(poi.id)) {
+      badges.push(`<span class="detail-badge patrocinado">🌟 Destacado este mes</span>`);
     }
 
     detailContent.innerHTML = `
@@ -180,21 +188,27 @@
 
     Object.values(clusterGroups).forEach((g) => g.clearLayers());
 
+    const categoriesToShow = new Set();
     let visibleCount = 0;
     allMarkers.forEach((marker) => {
       const poi = marker.poi;
-      if (!activeCats.has(poi.cat)) return;
-      if (favoritesOnly && !favorites.has(poi.id)) return;
+      if (destacadosOnly) {
+        if (!destacadosSet.has(poi.id)) return;
+      } else {
+        if (!activeCats.has(poi.cat)) return;
+        if (favoritesOnly && !favorites.has(poi.id)) return;
+      }
       if (query) {
         const haystack = (poi.name + " " + poi.town).toLowerCase();
         if (!haystack.includes(query)) return;
       }
       clusterGroups[poi.cat].addLayer(marker);
+      categoriesToShow.add(poi.cat);
       visibleCount++;
     });
 
     Object.entries(clusterGroups).forEach(([id, group]) => {
-      if (activeCats.has(id)) {
+      if (categoriesToShow.has(id)) {
         if (!map.hasLayer(group)) map.addLayer(group);
       } else if (map.hasLayer(group)) {
         map.removeLayer(group);
@@ -298,6 +312,16 @@
     favoritesOnly = !favoritesOnly;
     favToggleBtn.classList.toggle("active", favoritesOnly);
     refreshMap();
+  });
+
+  const destacadosToggleBtn = document.getElementById("destacadosToggle");
+  const normalFiltersEl = document.getElementById("normalFilters");
+  destacadosToggleBtn.addEventListener("click", () => {
+    destacadosOnly = !destacadosOnly;
+    destacadosToggleBtn.classList.toggle("active", destacadosOnly);
+    normalFiltersEl.classList.toggle("dimmed", destacadosOnly);
+    refreshMap();
+    applyHighlights();
   });
 
   // ---------- Mobile sidebar toggle ----------

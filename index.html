@@ -41,7 +41,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
 
@@ -67,21 +67,28 @@
     <input type="text" id="searchInput" placeholder="Buscar un lugar…" autocomplete="off" />
   </div>
 
-  <div class="filter-actions">
-    <button id="selectAll">Todas</button>
-    <button id="selectNone">Ninguna</button>
-  </div>
-
-  <button id="favoritesToggle" class="favorites-toggle">
-    <span class="fav-star">★</span> Solo favoritos <span id="favCount" class="cat-count">0</span>
+  <button id="destacadosToggle" class="destacados-toggle">
+    <span class="destacados-star">🌟</span>
+    <span class="destacados-text">Los 100 Destacados del mes</span>
   </button>
 
-  <div id="categoryList" class="category-list"></div>
+  <div id="normalFilters">
+    <div class="filter-actions">
+      <button id="selectAll">Todas</button>
+      <button id="selectNone">Ninguna</button>
+    </div>
 
-  <details class="advanced-filters">
-    <summary>Filtros avanzados</summary>
-    <div id="advancedList" class="category-list"></div>
-  </details>
+    <button id="favoritesToggle" class="favorites-toggle">
+      <span class="fav-star">★</span> Solo favoritos <span id="favCount" class="cat-count">0</span>
+    </button>
+
+    <div id="categoryList" class="category-list"></div>
+
+    <details class="advanced-filters">
+      <summary>Filtros avanzados</summary>
+      <div id="advancedList" class="category-list"></div>
+    </details>
+  </div>
 
   <div class="sidebar-footer">
     <span id="resultCount">0 lugares</span>
@@ -99,6 +106,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script src="data.js?v=4"></script>
-<script src="app.js?v=6"></script>
+<script src="destacados.js?v=1"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
