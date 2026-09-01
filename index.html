@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Descubre Asturias — Mapa interactivo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+
+<button id="sidebarToggle" aria-label="Mostrar filtros">☰ Filtros</button>
+
+<aside id="sidebar">
+  <div class="brand">
+    <span class="brand-icon">🌊</span>
+    <div>
+      <h1>Descubre Asturias</h1>
+      <p class="tagline">Principado de Asturias</p>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Buscar un lugar…" autocomplete="off" />
+  </div>
+
+  <div class="filter-actions">
+    <button id="selectAll">Todas</button>
+    <button id="selectNone">Ninguna</button>
+  </div>
+
+  <button id="favoritesToggle" class="favorites-toggle">
+    <span class="fav-star">★</span> Solo favoritos <span id="favCount" class="cat-count">0</span>
+  </button>
+
+  <div id="categoryList" class="category-list"></div>
+
+  <div class="sidebar-footer">
+    <span id="resultCount">0 lugares</span>
+    <p class="credits">Datos orientativos con fines turísticos.<br/>Mapas y datos © OpenStreetMap.</p>
+  </div>
+</aside>
+
+<div id="map"></div>
+
+<aside id="detailPanel">
+  <button id="detailClose" aria-label="Cerrar ficha">✕</button>
+  <div id="detailContent"></div>
+</aside>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="data.js?v=3"></script>
+<script src="app.js?v=4"></script>
+</body>
+</html>
