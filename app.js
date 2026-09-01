@@ -49,10 +49,17 @@
       if (map.hasLayer(lightTile)) map.removeLayer(lightTile);
       if (!map.hasLayer(darkBase)) darkBase.addTo(map);
       if (!map.hasLayer(darkRef)) darkRef.addTo(map);
+      // El basemap oscuro no tiene detalle real mas alla del zoom 16: mas alla de
+      // eso Leaflet solo estira la ultima tesela y se ve pixelado. Se limita el
+      // zoom maximo para que nunca se llegue a ver esa zona borrosa.
+      map.setMaxZoom(16);
     } else {
       if (map.hasLayer(darkBase)) map.removeLayer(darkBase);
       if (map.hasLayer(darkRef)) map.removeLayer(darkRef);
       if (!map.hasLayer(lightTile)) lightTile.addTo(map);
+      // En zonas rurales Esri no tiene teselas propias mas alla del zoom 18
+      // (se verian en blanco), asi que se limita ahi tambien.
+      map.setMaxZoom(18);
     }
   }
   applyMapTheme(currentTheme);
