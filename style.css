@@ -1,8 +1,12 @@
 :root {
   --bg: #f7f5f0;
   --sidebar-bg: #ffffff;
+  --surface: #ffffff;
+  --input-bg: #faf9f6;
   --text: #22262b;
   --text-muted: #6b7280;
+  --text-soft: #3a3f45;
+  --text-faint: #a3a3a3;
   --border: #eceae4;
   --accent: #1d3557;
   --shadow: 0 8px 24px rgba(20, 20, 30, 0.08);
@@ -10,6 +14,46 @@
   --sidebar-w: 320px;
   --detail-w: 360px;
   --gold: #b8860b;
+  --map-bg: #e9e7e1;
+  --attribution-bg: rgba(255, 255, 255, 0.75);
+  --attribution-text: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14161b;
+    --sidebar-bg: #1b1e25;
+    --surface: #242832;
+    --input-bg: #1f232b;
+    --text: #edeef0;
+    --text-muted: #9aa0ab;
+    --text-soft: #c7cad0;
+    --text-faint: #767c87;
+    --border: #2c303a;
+    --accent: #7ea6e0;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    --gold: #e0b84d;
+    --map-bg: #171a20;
+    --attribution-bg: rgba(20, 22, 27, 0.75);
+    --attribution-text: #cfd2d8;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14161b;
+  --sidebar-bg: #1b1e25;
+  --surface: #242832;
+  --input-bg: #1f232b;
+  --text: #edeef0;
+  --text-muted: #9aa0ab;
+  --text-soft: #c7cad0;
+  --text-faint: #767c87;
+  --border: #2c303a;
+  --accent: #7ea6e0;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --gold: #e0b84d;
+  --map-bg: #171a20;
+  --attribution-bg: rgba(20, 22, 27, 0.75);
+  --attribution-text: #cfd2d8;
 }
 
 * { box-sizing: border-box; }
@@ -43,7 +87,7 @@ html, body {
   left: var(--sidebar-w);
   right: 0;
   bottom: 0;
-  background: #e9e7e1;
+  background: var(--map-bg);
 }
 
 /* ---------- Sidebar ---------- */
@@ -70,6 +114,23 @@ html, body {
   margin-bottom: 20px;
 }
 .brand-icon { font-size: 30px; line-height: 1; }
+
+#themeToggle {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, transform 0.15s;
+}
+#themeToggle:hover { background: var(--bg); transform: rotate(15deg); }
 .brand h1 {
   font-family: 'Poppins', sans-serif;
   font-size: 19px;
@@ -92,11 +153,12 @@ html, body {
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
-  background: #faf9f6;
+  background: var(--input-bg);
+  color: var(--text);
   outline: none;
   transition: border-color 0.15s;
 }
-.search-box input:focus { border-color: var(--accent); background: #fff; }
+.search-box input:focus { border-color: var(--accent); background: var(--surface); }
 
 .filter-actions {
   display: flex;
@@ -109,7 +171,7 @@ html, body {
   font-size: 12.5px;
   font-weight: 600;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   border-radius: 8px;
   cursor: pointer;
   color: var(--text-muted);
@@ -126,7 +188,7 @@ html, body {
   padding: 9px 12px;
   margin-bottom: 14px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   border-radius: 10px;
   cursor: pointer;
   font-family: inherit;
@@ -221,7 +283,7 @@ html, body {
   border: 1px solid transparent;
 }
 .category-item:hover { background: var(--bg); }
-.category-item.active { background: #fff; border-color: var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.category-item.active { background: var(--surface); border-color: var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 
 .cat-dot {
   width: 15px;
@@ -268,7 +330,7 @@ html, body {
 }
 .credits {
   font-size: 10.5px;
-  color: #a3a3a3;
+  color: var(--text-faint);
   line-height: 1.5;
   margin: 4px 0 0;
 }
@@ -280,7 +342,7 @@ html, body {
   top: 14px;
   left: 14px;
   z-index: 1100;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
   border-radius: 10px;
@@ -342,8 +404,10 @@ html, body {
 
 .leaflet-control-attribution {
   font-size: 10px !important;
-  background: rgba(255,255,255,0.75) !important;
+  background: var(--attribution-bg) !important;
+  color: var(--attribution-text) !important;
 }
+.leaflet-control-attribution a { color: var(--attribution-text) !important; }
 
 /* ---------- Detail panel (right side) ---------- */
 #detailPanel {
@@ -372,7 +436,7 @@ html, body {
   width: 32px;
   height: 32px;
   border: none;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 50%;
   cursor: pointer;
@@ -424,7 +488,7 @@ html, body {
   margin-bottom: 10px;
   font-size: 14px;
   font-weight: 700;
-  color: #b8860b;
+  color: var(--gold);
 }
 .detail-rating .stars { letter-spacing: 1px; }
 .detail-town {
@@ -451,7 +515,7 @@ html, body {
   padding: 10px 6px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   cursor: pointer;
   font-family: inherit;
   font-size: 11.5px;
@@ -468,7 +532,7 @@ html, body {
 .detail-desc {
   font-size: 14px;
   line-height: 1.6;
-  color: #3a3f45;
+  color: var(--text-soft);
   margin: 0 0 18px;
 }
 

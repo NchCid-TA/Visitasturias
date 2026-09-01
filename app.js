@@ -1,4 +1,18 @@
 (function () {
+  // ---------- Tema claro/oscuro ----------
+  const THEME_KEY = "asturias_theme";
+  function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function getInitialTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    return saved === "light" || saved === "dark" ? saved : systemPrefersDark() ? "dark" : "light";
+  }
+  let currentTheme = getInitialTheme();
+  if (localStorage.getItem(THEME_KEY)) {
+    document.documentElement.setAttribute("data-theme", currentTheme);
+  }
+
   const map = L.map("map", {
     zoomControl: false,
     minZoom: 8,
@@ -10,13 +24,51 @@
   window.addEventListener("resize", () => map.invalidateSize());
   setTimeout(() => map.invalidateSize(), 200);
 
-  L.tileLayer(
+  const lightTile = L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",
     {
       attribution: "Tiles &copy; Esri — Esri, HERE, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors",
       maxZoom: 19,
     }
-  ).addTo(map);
+  );
+  const darkBase = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Tiles &copy; Esri — Esri, DeLorme, NAVTEQ",
+      maxNativeZoom: 16,
+      maxZoom: 19,
+    }
+  );
+  const darkRef = L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+    { maxNativeZoom: 16, maxZoom: 19 }
+  );
+
+  function applyMapTheme(theme) {
+    if (theme === "dark") {
+      if (map.hasLayer(lightTile)) map.removeLayer(lightTile);
+      if (!map.hasLayer(darkBase)) darkBase.addTo(map);
+      if (!map.hasLayer(darkRef)) darkRef.addTo(map);
+    } else {
+      if (map.hasLayer(darkBase)) map.removeLayer(darkBase);
+      if (map.hasLayer(darkRef)) map.removeLayer(darkRef);
+      if (!map.hasLayer(lightTile)) lightTile.addTo(map);
+    }
+  }
+  applyMapTheme(currentTheme);
+
+  const themeToggleBtn = document.getElementById("themeToggle");
+  function updateThemeButton() {
+    themeToggleBtn.textContent = currentTheme === "dark" ? "☀️" : "🌙";
+  }
+  updateThemeButton();
+  themeToggleBtn.addEventListener("click", () => {
+    currentTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+    localStorage.setItem(THEME_KEY, currentTheme);
+    applyMapTheme(currentTheme);
+    updateThemeButton();
+  });
 
   const catById = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
   const activeCats = new Set(CATEGORIES.filter((c) => !c.defaultOff).map((c) => c.id));
