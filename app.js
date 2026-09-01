@@ -19,7 +19,10 @@
   ).addTo(map);
 
   const catById = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
-  const activeCats = new Set(CATEGORIES.map((c) => c.id));
+  const activeCats = new Set(CATEGORIES.filter((c) => !c.defaultOff).map((c) => c.id));
+
+  // ---------- Filtros avanzados (Michelin, emblematicos, rutas destacadas) ----------
+  const advancedFilters = { michelin: false, emblematico: false, destacada: false };
 
   // ---------- Favoritos (guardados en este navegador, sin cuenta) ----------
   const FAV_KEY = "asturias_favoritos";
@@ -109,8 +112,20 @@
       infoRows.push(`<div class="detail-info-row"><span class="icon">🌐</span><a href="${poi.website}" target="_blank" rel="noopener">${label}</a></div>`);
     }
 
+    const badges = [];
+    if (poi.michelin) {
+      badges.push(`<span class="detail-badge michelin">${"⭐".repeat(poi.michelin)} Michelin</span>`);
+    }
+    if (poi.emblematico) {
+      badges.push(`<span class="detail-badge emblematico">🏛️ Emblemático</span>`);
+    }
+    if (poi.destacada) {
+      badges.push(`<span class="detail-badge destacada">🥾 Ruta destacada</span>`);
+    }
+
     detailContent.innerHTML = `
       <span class="detail-tag" style="background:${info.color}">${info.icon} ${info.label}</span>
+      ${badges.join("")}
       ${poi.rating ? starRow(poi.rating) : ""}
       <h2 class="detail-title">${poi.name}</h2>
       <div class="detail-town"><span class="icon">📍</span><span>${poi.town}</span></div>
@@ -149,21 +164,28 @@
 
     Object.values(clusterGroups).forEach((g) => g.clearLayers());
 
+    const categoriesToShow = new Set();
     let visibleCount = 0;
     allMarkers.forEach((marker) => {
       const poi = marker.poi;
-      if (!activeCats.has(poi.cat)) return;
+      const categoryOk = activeCats.has(poi.cat);
+      const advancedOk =
+        (advancedFilters.michelin && poi.michelin) ||
+        (advancedFilters.emblematico && poi.emblematico) ||
+        (advancedFilters.destacada && poi.destacada);
+      if (!categoryOk && !advancedOk) return;
       if (favoritesOnly && !favorites.has(poi.id)) return;
       if (query) {
         const haystack = (poi.name + " " + poi.town).toLowerCase();
         if (!haystack.includes(query)) return;
       }
       clusterGroups[poi.cat].addLayer(marker);
+      categoriesToShow.add(poi.cat);
       visibleCount++;
     });
 
     Object.entries(clusterGroups).forEach(([id, group]) => {
-      if (activeCats.has(id)) {
+      if (categoriesToShow.has(id)) {
         if (!map.hasLayer(group)) map.addLayer(group);
       } else if (map.hasLayer(group)) {
         map.removeLayer(group);
@@ -176,7 +198,8 @@
 
   // ---------- Sidebar category list ----------
   const listEl = document.getElementById("categoryList");
-  CATEGORIES.forEach((c) => {
+  const primaryCategories = CATEGORIES.filter((c) => !c.advanced);
+  primaryCategories.forEach((c) => {
     const count = POIS.filter((p) => p.cat === c.id).length;
     const item = document.createElement("div");
     item.className = "category-item active";
@@ -199,15 +222,62 @@
     listEl.appendChild(item);
   });
 
+  // ---------- Filtros avanzados ----------
+  const advancedListEl = document.getElementById("advancedList");
+
+  CATEGORIES.filter((c) => c.advanced).forEach((c) => {
+    const count = POIS.filter((p) => p.cat === c.id).length;
+    const item = document.createElement("div");
+    item.className = "category-item" + (activeCats.has(c.id) ? " active" : "");
+    item.innerHTML = `
+      <span class="cat-dot" style="background:${c.color}">${c.icon}</span>
+      <span class="cat-label">${c.label}</span>
+      <span class="cat-count">${count}</span>
+    `;
+    item.addEventListener("click", () => {
+      if (activeCats.has(c.id)) {
+        activeCats.delete(c.id);
+        item.classList.remove("active");
+      } else {
+        activeCats.add(c.id);
+        item.classList.add("active");
+      }
+      refreshMap();
+    });
+    advancedListEl.appendChild(item);
+  });
+
+  const BOOLEAN_FILTERS = [
+    { key: "michelin", label: "Estrella Michelin", color: "#c9a227", icon: "⭐" },
+    { key: "emblematico", label: "Emblemáticos", color: "#8a5a44", icon: "🏛️" },
+    { key: "destacada", label: "Rutas destacadas", color: "#588157", icon: "🥾" },
+  ];
+  BOOLEAN_FILTERS.forEach((f) => {
+    const count = POIS.filter((p) => p[f.key]).length;
+    const item = document.createElement("div");
+    item.className = "category-item";
+    item.innerHTML = `
+      <span class="cat-dot" style="background:${f.color}">${f.icon}</span>
+      <span class="cat-label">${f.label}</span>
+      <span class="cat-count">${count}</span>
+    `;
+    item.addEventListener("click", () => {
+      advancedFilters[f.key] = !advancedFilters[f.key];
+      item.classList.toggle("active", advancedFilters[f.key]);
+      refreshMap();
+    });
+    advancedListEl.appendChild(item);
+  });
+
   document.getElementById("selectAll").addEventListener("click", () => {
-    CATEGORIES.forEach((c) => activeCats.add(c.id));
-    document.querySelectorAll(".category-item").forEach((el) => el.classList.add("active"));
+    primaryCategories.forEach((c) => activeCats.add(c.id));
+    listEl.querySelectorAll(".category-item").forEach((el) => el.classList.add("active"));
     refreshMap();
   });
 
   document.getElementById("selectNone").addEventListener("click", () => {
-    activeCats.clear();
-    document.querySelectorAll(".category-item").forEach((el) => el.classList.remove("active"));
+    primaryCategories.forEach((c) => activeCats.delete(c.id));
+    listEl.querySelectorAll(".category-item").forEach((el) => el.classList.remove("active"));
     refreshMap();
   });
 
